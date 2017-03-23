@@ -1,7 +1,7 @@
-# Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
+﻿# Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Екатерина Демина](https://up.htmlacademy.ru/javascript/9/user/255225).
-* Наставник: `Неизвестно`.
+* Наставник: [Филипп Шамсиев] (https://htmlacademy.ru/profile/toolx).
 
 ---
 
