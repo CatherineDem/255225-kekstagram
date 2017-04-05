@@ -21,7 +21,7 @@ function getRandomInRange(min, max) {
 }
 
 function getRandomComment(cnt) {
-  var comment = '';
+  var comment = [];
   var useComments = [];
   var commentIndex = 0;
   for (var i = 1; i <= cnt; i++) {
@@ -30,13 +30,13 @@ function getRandomComment(cnt) {
     }
     while (useComments.indexOf(commentIndex) !== -1);
     useComments.push(commentIndex);
-    comment += (cnt > 1) && (i < cnt) ? COMMENTS[commentIndex] + ' ' : COMMENTS[commentIndex];
+    comment[i - 1] = COMMENTS[commentIndex];
   }
   return comment;
 }
 
 function Photo(num) {
-  this.url = 'photos/{{' + num + '}}.jpg';
+  this.url = 'photos/' + num + '.jpg';
   this.likes = getRandomInRange(LIKES_MIN, LIKES_MAX);
   this.comment = getRandomComment(getRandomInRange(1, 2));
 }
@@ -52,7 +52,7 @@ var createPhotos = function () {
 var createPictureElement = function (photo) {
   var pictureElement = pictureTemplate.cloneNode(true);
   pictureElement.querySelector('img').src = photo.url;
-  pictureElement.querySelector('.picture-comments').textContent = photo.comment;
+  pictureElement.querySelector('.picture-comments').textContent = photo.comment.length;
   pictureElement.querySelector('.picture-likes').textContent = photo.likes;
   return pictureElement;
 };
@@ -70,7 +70,7 @@ var fillBlockPictures = function () {
 var fillGallery = function (photo) {
   gallery.querySelector('img').src = photo.url;
   gallery.querySelector('.likes-count').textContent = photo.likes;
-  gallery.querySelector('.comments-count').textContent = photo.comment;
+  gallery.querySelector('.comments-count').textContent = photo.comment.length;
 };
 
 photos = fillBlockPictures();
