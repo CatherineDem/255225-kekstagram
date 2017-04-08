@@ -183,6 +183,7 @@ uploadComment.addEventListener('blur', function () {
   document.addEventListener('keydown', onUploadOverlayEscPress);
 });
 
-uploadSubmitBtn.addEventListener('click', function () {
+uploadSubmitBtn.addEventListener('click', function (evt) {
+  evt.preventDefault();
   closeUploadOverlay();
 });
