@@ -86,19 +86,15 @@ var fillGallery = function (photo) {
 };
 
 function findPhoto(array, url) {
-  var i = 0;
   var result = -1;
-  while ((i < array.length) && (result < 0)) {
-    if (url === array[i].url) {
+  array.every(function (el, i) {
+    if (el.url === url) {
       result = i;
+      return false;
     }
-    i++;
-  }
-  if (result > -1) {
-    return photos[result];
-  } else {
-    return false;
-  }
+    return true;
+  });
+  return photos[result];
 }
 
 var onPictureEscPress = function (evt) {
@@ -114,8 +110,8 @@ var closePicture = function () {
 
 var openPicture = function (evt) {
   if (evt.currentTarget.className === 'picture') {
-    var picture = evt.currentTarget;
-    var pictureObj = findPhoto(photos, picture.querySelector('img').getAttribute('src'));
+    var pictureSrc = evt.currentTarget.children[0].getAttribute('src');
+    var pictureObj = findPhoto(photos, pictureSrc);
     if (typeof pictureObj === 'object') {
       fillGallery(pictureObj);
       gallery.classList.remove('invisible');
@@ -148,17 +144,12 @@ uploadOverlay.classList.add('invisible');
 uploadForm.classList.remove('invisible');
 
 var pictures = picturesBlock.querySelectorAll('.picture');
-for (var i = 0; i < pictures.length; i++) {
-  pictures[i].addEventListener('click', function (evt) {
+pictures.forEach(function (el) {
+  el.addEventListener('click', function (evt) {
     evt.preventDefault();
     openPicture(evt);
   });
-  pictures[i].addEventListener('keydown', function (evt) {
-    if (evt.keyCode === 13) {
-      openPicture(evt);
-    }
-  });
-}
+});
 
 galleryCloseBtn.addEventListener('click', function () {
   closePicture();
@@ -194,10 +185,4 @@ uploadComment.addEventListener('blur', function () {
 
 uploadSubmitBtn.addEventListener('click', function () {
   closeUploadOverlay();
-});
-
-uploadSubmitBtn.addEventListener('keydown', function (evt) {
-  if (evt.keyCode === 13) {
-    closeUploadOverlay();
-  }
 });
