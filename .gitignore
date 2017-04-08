@@ -10,4 +10,3 @@ Thumbs.db
 *.pdf
 yarn.lock
 npm-debug.log*
-package.json
