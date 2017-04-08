@@ -86,7 +86,7 @@
 
       <textarea class="upload-form-description" name="upload-description" placeholder="Ваш комментарий..."></textarea>
 
-      <button class="upload-form-cancel" type="reset" id="upload-cancel"></button>
+      <button class="upload-form-cancel" type="reset" id="upload-cancel" tabindex="0"></button>
       <button class="upload-form-submit" type="submit" id="upload-submit">Отправить</button>
     </form>
   </div>
@@ -115,7 +115,7 @@
 
 
 <div class="gallery-overlay invisible">
-  <span class="gallery-overlay-close">&times;</span>
+  <span class="gallery-overlay-close" tabindex="0">&times;</span>
   <div class="gallery-overlay-preview">
     <img src="" class="gallery-overlay-image" alt="">
     <div class="gallery-overlay-controls">
@@ -126,7 +126,7 @@
 </div>
 
 <template id="picture-template" style="display: none">
-  <a href="" class="picture">
+  <a href="" class="picture" tabindex="0">
     <img src="" width="182" height="182">
     <span class="picture-stats">
       <span class="picture-stat picture-comments"></span>
