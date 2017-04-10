@@ -809,3 +809,13 @@ input[type=radio]:checked + .upload-filter-label .upload-filter-preview {
 .footer-social-item-vk {
   background-position: -84px 0;
 }
+
+.err-message {
+  width: auto;
+  padding: 20px 20px;
+  background-color: #fff;
+  border: 1px solid #E31215;
+  font-size: 12px;
+  font-style: italic;
+  color: red;
+}

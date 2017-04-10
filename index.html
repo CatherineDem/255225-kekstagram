@@ -30,10 +30,10 @@
     <form class="upload-form upload-filter" id="upload-filter" method="post" enctype="multipart/form-data" autocomplete="off">
       <fieldset class="upload-resize-controls">
         <button type="button" class="upload-resize-control upload-resize-controls-button upload-resize-controls-button-dec">–</button><!--
-        --><input type="text" class="upload-resize-control upload-resize-controls-value" value="55%" readonly /><!--
+        --><input type="text" class="upload-resize-control upload-resize-controls-value" value="100%" readonly /><!--
         --><button type="button" class="upload-resize-control upload-resize-controls-button upload-resize-controls-button-inc">+</button>
+        <div class="err-message invisible"></div>
       </fieldset>
-
       <div class="upload-form-preview">
         <div></div>
         <img src="img/upload-default-image.png" class="filter-image-preview">
@@ -84,7 +84,7 @@
         </label>
       </fieldset>
 
-      <textarea class="upload-form-description" name="upload-description" placeholder="Ваш комментарий..."></textarea>
+      <textarea class="upload-form-description" name="upload-description" placeholder="Ваш комментарий..." required minlength="30" maxlength="100"></textarea>
 
       <button class="upload-form-cancel" type="reset" id="upload-cancel" tabindex="0"></button>
       <button class="upload-form-submit" type="submit" id="upload-submit">Отправить</button>
