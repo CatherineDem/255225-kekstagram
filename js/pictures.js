@@ -235,7 +235,7 @@ filterBtns.addEventListener('click', function (evt) {
 
 var scaleImg = function (evt) {
   var currentScale = parseInt(scale.value, 10);
-  currentScale = ((currentScale % 25 !== 0) && (currentScale > 25) && (currentScale < 100)) ? SCALE_MIN : currentScale; 
+  currentScale = ((currentScale % 25 !== 0) && (currentScale > 25) && (currentScale < 100)) ? SCALE_MIN : currentScale;
   if (evt.currentTarget === scaleDecBtn) {
     if (currentScale > 100) {
       scale.value = '100';
@@ -278,8 +278,8 @@ var scaleValidity = function (scaleValue) {
     }
   } else {
     if (uploadOverlay.querySelector('#scaleErrMsg')) {
-      uploadOverlay.querySelector('#scaleErrMsg').classList.add('invisible'); 
-      scale.style.outline = 'none'; 
+      uploadOverlay.querySelector('#scaleErrMsg').classList.add('invisible');
+      scale.style.outline = 'none';
     }
   }
   uploadSubmitBtn.disabled = !(result && commentValidityResult);
