@@ -169,8 +169,14 @@ uploadComment.addEventListener('blur', function () {
   document.addEventListener('keydown', onUploadOverlayEscPress);
 });
 
+uploadComment.addEventListener('keydown', function () {
+  uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
+  formValidity();
+});
+
 uploadComment.addEventListener('change', function () {
   uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
+  formValidity();
 });
 
 var resetFilter = function () {
@@ -185,8 +191,7 @@ var resetFilter = function () {
 
 var resetScaleInputStyle = function () {
   uploadImg.style.transform = '';
-  scale.style.borderWidth = '0 1px';
-  scale.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+  scale.style.outline = 'none';
   errMessageBlock.classList.add('invisible');
 };
 
@@ -207,7 +212,7 @@ filterBtns.addEventListener('click', function (evt) {
 });
 
 var scaleImg = function (evt) {
-  if (scale.style.borderColor === 'red') {
+  if (!scaleValidity()) {
     resetScaleInputStyle();
   }
   var currentScale = parseInt(scale.value, 10);
@@ -226,6 +231,7 @@ var scaleImg = function (evt) {
   }
   uploadImg.style.transform = 'scale(' + scale.value / 100 + ')';
   scale.value += '%';
+  formValidity();
 };
 
 scaleBtns.forEach(function (el) {
@@ -239,15 +245,17 @@ var scaleValidity = function (scaleValue) {
   var result = false;
   var pattern = /^\d{2,3}%$/;
   if (pattern.test(scaleValue) === true) {
-    result = ((parseInt(scaleValue, 10) >= 25) && (parseInt(scaleValue, 10) <= 100));
+    result = ((parseInt(scaleValue, 10) >= 25) && (parseInt(scaleValue, 10) <= 100) && !(parseInt(scaleValue, 10) % 25));
   }
   return result;
 };
 
 var resetForm = function () {
   resetScaleInputStyle();
+  scale.value = '100%';
   resetFilter();
   uploadImg.classList.add('filter-image-preview');
+  uploadComment.value = '';
 };
 
 var onUploadOverlayEscPress = function (evt) {
@@ -284,16 +292,27 @@ uploadCancelBtn.addEventListener('keydown', function (evt) {
   }
 });
 
-uploadSubmitBtn.addEventListener('click', function (evt) {
+var formValidity = function () {
+  var result = (uploadComment.checkValidity()) && (scaleValidity(scale.value));
   if (uploadComment.checkValidity() === false) {
     uploadComment.style.borderColor = 'red';
   } else if (scaleValidity(scale.value) === false) {
-    evt.preventDefault();
     errMessageBlock.classList.remove('invisible');
     errMessageBlock.textContent = 'Масштаб задан неверно: минимум 25%, максимум 100% с шагом в 25%';
-    scale.style.borderWidth = '1px 1px';
-    scale.style.borderColor = 'red';
-  } else {
+    scale.style.outline = '2px solid red';
+  }
+  uploadSubmitBtn.disabled = !result;
+  return result;
+};
+
+scale.addEventListener('change', function () {
+  formValidity();
+});
+
+uploadSubmitBtn.addEventListener('click', function (evt) {
+  evt.preventDefault();
+  if (formValidity()) {
+    resetForm();
     closeUploadOverlay();
   }
 });
