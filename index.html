@@ -32,7 +32,6 @@
         <button type="button" class="upload-resize-control upload-resize-controls-button upload-resize-controls-button-dec">–</button><!--
         --><input type="text" class="upload-resize-control upload-resize-controls-value" value="100%" readonly /><!--
         --><button type="button" class="upload-resize-control upload-resize-controls-button upload-resize-controls-button-inc">+</button>
-        <div class="err-message invisible"></div>
       </fieldset>
       <div class="upload-form-preview">
         <div></div>
@@ -133,6 +132,9 @@
       <span class="picture-stat picture-likes"></span>
     </span>
   </a>
+</template>
+<template id="error-message" style="display: none;">
+  <div class="err-message"></div>
 </template>
 <script src="js/pictures.js" type="text/javascript"></script>
 </body>

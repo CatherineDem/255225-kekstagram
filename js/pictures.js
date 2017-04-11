@@ -44,7 +44,11 @@ var uploadImg = uploadOverlay.querySelector('.filter-image-preview');
 
 var filterBtns = uploadOverlay.querySelector('.upload-filter-controls');
 
-var errMessageBlock = uploadOverlay.querySelector('.err-message');
+var errMessageTemplate = document.querySelector('#error-message').content;
+
+var commentValidityResult = false;
+
+var scaleValidityResult = true;
 
 function getRandomInRange(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -169,14 +173,33 @@ uploadComment.addEventListener('blur', function () {
   document.addEventListener('keydown', onUploadOverlayEscPress);
 });
 
+var commentValidity = function () {
+  commentValidityResult = uploadComment.checkValidity();
+  if (commentValidityResult === false) {
+    if (!uploadOverlay.querySelector('#commentErrMsg')) {
+      createErrMessage('commentErrMsg', document.querySelector('.upload-form-description'), 'Длина комментария должна быть от 30 до 100 символов');
+    } else {
+      uploadOverlay.querySelector('#commentErrMsg').classList.remove('invisible');
+    }
+    uploadComment.style.borderColor = 'red';
+    uploadSubmitBtn.disabled = true;
+  } else {
+    if (uploadOverlay.querySelector('#commentErrMsg')) {
+      uploadOverlay.querySelector('#commentErrMsg').classList.add('invisible');
+    }
+    uploadSubmitBtn.disabled = !scaleValidityResult;
+  }
+  return commentValidityResult;
+};
+
 uploadComment.addEventListener('keydown', function () {
   uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
-  formValidity();
+  commentValidity();
 });
 
 uploadComment.addEventListener('change', function () {
   uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
-  formValidity();
+  commentValidity();
 });
 
 var resetFilter = function () {
@@ -192,7 +215,6 @@ var resetFilter = function () {
 var resetScaleInputStyle = function () {
   uploadImg.style.transform = '';
   scale.style.outline = 'none';
-  errMessageBlock.classList.add('invisible');
 };
 
 var filterImg = function (evt) {
@@ -212,10 +234,8 @@ filterBtns.addEventListener('click', function (evt) {
 });
 
 var scaleImg = function (evt) {
-  if (!scaleValidity()) {
-    resetScaleInputStyle();
-  }
   var currentScale = parseInt(scale.value, 10);
+  currentScale = ((currentScale % 25 !== 0) && (currentScale > 25) && (currentScale < 100)) ? SCALE_MIN : currentScale; 
   if (evt.currentTarget === scaleDecBtn) {
     if (currentScale > 100) {
       scale.value = '100';
@@ -231,7 +251,7 @@ var scaleImg = function (evt) {
   }
   uploadImg.style.transform = 'scale(' + scale.value / 100 + ')';
   scale.value += '%';
-  formValidity();
+  scaleValidity(scale.value);
 };
 
 scaleBtns.forEach(function (el) {
@@ -247,6 +267,22 @@ var scaleValidity = function (scaleValue) {
   if (pattern.test(scaleValue) === true) {
     result = ((parseInt(scaleValue, 10) >= 25) && (parseInt(scaleValue, 10) <= 100) && !(parseInt(scaleValue, 10) % 25));
   }
+  scaleValidityResult = result;
+  if (!scaleValidityResult) {
+    if (!uploadOverlay.querySelector('#scaleErrMsg')) {
+      createErrMessage('scaleErrMsg', uploadOverlay.querySelector('.upload-resize-controls-button-inc'), 'Масштаб задан неверно: минимум 25%, максимум 100% с шагом в 25%');
+      scale.style.outline = '2px solid red';
+    } else {
+      uploadOverlay.querySelector('#scaleErrMsg').classList.remove('invisible');
+      scale.style.outline = 'none';
+    }
+  } else {
+    if (uploadOverlay.querySelector('#scaleErrMsg')) {
+      uploadOverlay.querySelector('#scaleErrMsg').classList.add('invisible'); 
+      scale.style.outline = 'none'; 
+    }
+  }
+  uploadSubmitBtn.disabled = !(result && commentValidityResult);
   return result;
 };
 
@@ -254,8 +290,13 @@ var resetForm = function () {
   resetScaleInputStyle();
   scale.value = '100%';
   resetFilter();
+  uploadOverlay.querySelector('#upload-filter-none').checked = true;
   uploadImg.classList.add('filter-image-preview');
   uploadComment.value = '';
+  var errMessages = uploadOverlay.querySelectorAll('.err-message');
+  [].forEach.call(errMessages, function (el) {
+    el.classList.add('invisible');
+  });
 };
 
 var onUploadOverlayEscPress = function (evt) {
@@ -292,21 +333,21 @@ uploadCancelBtn.addEventListener('keydown', function (evt) {
   }
 });
 
+var createErrMessage = function (id, element, errmess) {
+  var errMessageElement = errMessageTemplate.cloneNode(true);
+  errMessageElement.querySelector('.err-message').id = id;
+  errMessageElement.querySelector('.err-message').textContent = errmess;
+  element.insertAdjacentElement('afterEnd', errMessageElement.firstElementChild);
+};
+
 var formValidity = function () {
-  var result = (uploadComment.checkValidity()) && (scaleValidity(scale.value));
-  if (uploadComment.checkValidity() === false) {
-    uploadComment.style.borderColor = 'red';
-  } else if (scaleValidity(scale.value) === false) {
-    errMessageBlock.classList.remove('invisible');
-    errMessageBlock.textContent = 'Масштаб задан неверно: минимум 25%, максимум 100% с шагом в 25%';
-    scale.style.outline = '2px solid red';
-  }
+  var result = (commentValidity()) && (scaleValidity(scale.value));
   uploadSubmitBtn.disabled = !result;
   return result;
 };
 
-scale.addEventListener('change', function () {
-  formValidity();
+scale.addEventListener('keyup', function () {
+  scaleValidity(scale.value);
 });
 
 uploadSubmitBtn.addEventListener('click', function (evt) {
