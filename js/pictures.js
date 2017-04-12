@@ -125,9 +125,22 @@ var onPictureEscPress = function (evt) {
   }
 };
 
+var onCloseBtnClick = function (evt) {
+  closePicture();
+};
+
+var onCloseBtnEnterPress = function (evt) {
+  if (evt.keyCode === 13) {
+    closePicture();
+  }
+};
+
 var closePicture = function () {
   gallery.classList.add('invisible');
   document.removeEventListener('keydown', onPictureEscPress);
+  galleryCloseBtn.removeEventListener('click', onCloseBtnClick);
+  galleryCloseBtn.removeEventListener('keydown', onCloseBtnEnterPress);
+  uploadFileName.addEventListener('change', onUploadFileNameChange);
 };
 
 var openPicture = function (evt) {
@@ -140,41 +153,28 @@ var openPicture = function (evt) {
     }
   }
   document.addEventListener('keydown', onPictureEscPress);
+  galleryCloseBtn.addEventListener('click', onCloseBtnClick);
+  galleryCloseBtn.addEventListener('keydown', onCloseBtnEnterPress);
+  uploadFileName.removeEventListener('change', onUploadFileNameChange);
 };
 
 photos = fillBlockPictures();
 uploadOverlay.classList.add('invisible');
 uploadForm.classList.remove('invisible');
 
+var onPicturesClick = function (evt) {
+  evt.preventDefault();
+  openPicture(evt);
+};
+
 var pictures = picturesBlock.querySelectorAll('.picture');
 pictures.forEach(function (el) {
-  el.addEventListener('click', function (evt) {
-    evt.preventDefault();
-    openPicture(evt);
-  });
-});
-
-galleryCloseBtn.addEventListener('click', function () {
-  closePicture();
-});
-
-galleryCloseBtn.addEventListener('keydown', function (evt) {
-  if (evt.keyCode === 13) {
-    closePicture();
-  }
-});
-
-
-uploadComment.addEventListener('focus', function () {
-  document.removeEventListener('keydown', onUploadOverlayEscPress);
-});
-
-uploadComment.addEventListener('blur', function () {
-  document.addEventListener('keydown', onUploadOverlayEscPress);
+  el.addEventListener('click', onPicturesClick);
 });
 
 var commentValidity = function () {
-  commentValidityResult = uploadComment.checkValidity();
+  uploadComment.value = uploadComment.value.toString();
+  commentValidityResult = (uploadComment.checkValidity() && (uploadComment.value.trim().length >= 30 && uploadComment.value.trim().length <= 100));
   if (commentValidityResult === false) {
     if (!uploadOverlay.querySelector('#commentErrMsg')) {
       createErrMessage('commentErrMsg', document.querySelector('.upload-form-description'), 'Длина комментария должна быть от 30 до 100 символов');
@@ -187,20 +187,11 @@ var commentValidity = function () {
     if (uploadOverlay.querySelector('#commentErrMsg')) {
       uploadOverlay.querySelector('#commentErrMsg').classList.add('invisible');
     }
+    uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
     uploadSubmitBtn.disabled = !scaleValidityResult;
   }
   return commentValidityResult;
 };
-
-uploadComment.addEventListener('keydown', function () {
-  uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
-  commentValidity();
-});
-
-uploadComment.addEventListener('change', function () {
-  uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
-  commentValidity();
-});
 
 var resetFilter = function () {
   var filtersCollection = [];
@@ -229,22 +220,21 @@ var filterImg = function (evt) {
   }
 };
 
-filterBtns.addEventListener('click', function (evt) {
-  filterImg(evt);
-});
-
 var scaleImg = function (evt) {
   var currentScale = parseInt(scale.value, 10);
-  currentScale = ((currentScale % 25 !== 0) && (currentScale > 25) && (currentScale < 100)) ? SCALE_MIN : currentScale;
   if (evt.currentTarget === scaleDecBtn) {
     if (currentScale > 100) {
       scale.value = '100';
+    } else if ((currentScale % 25 !== 0) && (currentScale > 25) && (currentScale < 100)) {
+      scale.value = (parseInt(currentScale / 25, 10)) * 25;
     } else {
       scale.value = (currentScale - 25 < SCALE_MIN) ? SCALE_MIN : currentScale - 25;
     }
   } else if (evt.currentTarget === scaleIncBtn) {
     if (currentScale < 25) {
       scale.value = '25';
+    } else if ((currentScale % 25 !== 0) && (currentScale > 25) && (currentScale < 100)) {
+      scale.value = (parseInt(currentScale / 25, 10) + 1) * 25;
     } else {
       scale.value = (currentScale + 25 > SCALE_MAX) ? SCALE_MAX : currentScale + 25;
     }
@@ -253,13 +243,6 @@ var scaleImg = function (evt) {
   scale.value += '%';
   scaleValidity(scale.value);
 };
-
-scaleBtns.forEach(function (el) {
-  el.addEventListener('click', function (evt) {
-    evt.preventDefault();
-    scaleImg(evt);
-  });
-});
 
 var scaleValidity = function (scaleValue) {
   var result = false;
@@ -297,41 +280,8 @@ var resetForm = function () {
   [].forEach.call(errMessages, function (el) {
     el.classList.add('invisible');
   });
+  uploadSubmitBtn.disabled = true;
 };
-
-var onUploadOverlayEscPress = function (evt) {
-  if (evt.keyCode === 27) {
-    closeUploadOverlay();
-  }
-};
-
-var closeUploadOverlay = function () {
-  resetForm();
-  uploadOverlay.classList.add('invisible');
-  uploadForm.classList.remove('invisible');
-  uploadFileName.value = '';
-  document.removeEventListener('keydown', onUploadOverlayEscPress);
-};
-
-var openUploadOverlay = function () {
-  uploadForm.classList.add('invisible');
-  uploadOverlay.classList.remove('invisible');
-  document.addEventListener('keydown', onUploadOverlayEscPress);
-};
-
-uploadFileName.addEventListener('change', function (evt) {
-  openUploadOverlay(evt);
-});
-
-uploadCancelBtn.addEventListener('click', function () {
-  closeUploadOverlay();
-});
-
-uploadCancelBtn.addEventListener('keydown', function (evt) {
-  if (evt.keyCode === 13) {
-    closeUploadOverlay();
-  }
-});
 
 var createErrMessage = function (id, element, errmess) {
   var errMessageElement = errMessageTemplate.cloneNode(true);
@@ -346,14 +296,97 @@ var formValidity = function () {
   return result;
 };
 
-scale.addEventListener('keyup', function () {
-  scaleValidity(scale.value);
-});
+var onUploadOverlayEscPress = function (evt) {
+  if (evt.keyCode === 27) {
+    closeUploadOverlay();
+  }
+};
 
-uploadSubmitBtn.addEventListener('click', function (evt) {
+var onScaleBtnsClick = function (evt) {
+  evt.preventDefault();
+  scaleImg(evt);
+};
+
+var onScaleKeyup = function () {
+  scaleValidity(scale.value);
+};
+
+var onUploadCommentFocus = function () {
+  document.removeEventListener('keydown', onUploadOverlayEscPress);
+};
+
+var onUploadCommentBlur = function () {
+  document.addEventListener('keydown', onUploadOverlayEscPress);
+};
+
+var onUploadCommentKeyupOrChange = function () {
+  commentValidity();
+};
+
+var onUploadCancelBtnClick = function () {
+  closeUploadOverlay();
+};
+
+var onUploadCancelBtnEnterPress = function (evt) {
+  if (evt.keyCode === 13) {
+    closeUploadOverlay();
+  }
+};
+
+var onUploadSubmit = function (evt) {
   evt.preventDefault();
   if (formValidity()) {
     resetForm();
     closeUploadOverlay();
   }
-});
+};
+
+var onUploadFileNameChange = function (evt) {
+  pictures.forEach(function (el) {
+    el.removeEventListener('click', onPicturesClick);
+  });
+  openUploadOverlay(evt);
+};
+
+uploadFileName.addEventListener('change', onUploadFileNameChange);
+
+var closeUploadOverlay = function () {
+  resetForm();
+  uploadOverlay.classList.add('invisible');
+  uploadForm.classList.remove('invisible');
+  uploadFileName.value = '';
+  document.removeEventListener('keydown', onUploadOverlayEscPress);
+  filterBtns.removeEventListener('click', filterImg);
+  scaleBtns.forEach(function (el) {
+    el.removeEventListener('click', onScaleBtnsClick);
+  });
+  scale.removeEventListener('keyup', onScaleKeyup);
+  uploadComment.removeEventListener('focus', onUploadCommentFocus);
+  uploadComment.removeEventListener('blur', onUploadCommentBlur);
+  uploadComment.removeEventListener('keyup', onUploadCommentKeyupOrChange);
+  uploadComment.removeEventListener('change', onUploadCommentKeyupOrChange);
+  uploadCancelBtn.removeEventListener('click', onUploadCancelBtnClick);
+  uploadCancelBtn.removeEventListener('keydown', onUploadCancelBtnEnterPress);
+  uploadSubmitBtn.removeEventListener('click', onUploadSubmit);
+  pictures.forEach(function (el) {
+    el.addEventListener('click', onPicturesClick);
+  });
+};
+
+var openUploadOverlay = function () {
+  uploadForm.classList.add('invisible');
+  uploadOverlay.classList.remove('invisible');
+  document.addEventListener('keydown', onUploadOverlayEscPress);
+  filterBtns.addEventListener('click', filterImg);
+  scaleBtns.forEach(function (el) {
+    el.addEventListener('click', onScaleBtnsClick);
+  });
+  scale.addEventListener('keyup', onScaleKeyup);
+  uploadComment.addEventListener('focus', onUploadCommentFocus);
+  uploadComment.addEventListener('blur', onUploadCommentBlur);
+  uploadComment.addEventListener('keyup', onUploadCommentKeyupOrChange);
+  uploadComment.addEventListener('change', onUploadCommentKeyupOrChange);
+  uploadCancelBtn.addEventListener('click', onUploadCancelBtnClick);
+  uploadCancelBtn.addEventListener('keydown', onUploadCancelBtnEnterPress);
+  uploadSubmitBtn.addEventListener('click', onUploadSubmit);
+};
