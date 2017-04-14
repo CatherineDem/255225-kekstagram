@@ -1,4 +1,5 @@
 'use strict';
+
 window.data = (function () {
   var LIKES_MIN = 15;
   var LIKES_MAX = 500;
@@ -33,7 +34,5 @@ window.data = (function () {
     }
     return photos;
   };
-  return {
-    createPhotos: createPhotos
-  };
+  return createPhotos();
 })();
