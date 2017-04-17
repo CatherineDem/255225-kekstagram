@@ -21,15 +21,102 @@ window.form = (function () {
   var errMessageTemplate = document.querySelector('#error-message').content;
   var commentValidityResult = false;
   var scaleValidityResult = true;
+  var filterSliderBlock = filterBtns.querySelector('.upload-filter-level');
+  var filterToggle = filterSliderBlock.querySelector('.upload-filter-level-pin');
+  var filterLine = filterSliderBlock.querySelector('.upload-filter-level-line');
+  var filterValue = filterSliderBlock.querySelector('.upload-filter-level-val');
+  var toggleCoords = [];
+  var shiftX = 0;
+  var sliderCoords = [];
+  var stepFilter = 1;
+  var pointFilter = 1;
+  var selectedFilter = '';
+  var toggleMousemove = function (evt) {
+    var newLeft = (evt.pageX - shiftX - sliderCoords.left);
+    newLeft = Math.round(newLeft / (stepFilter * pointFilter) * stepFilter * pointFilter);
+    if (newLeft < 0) {
+      newLeft = 0;
+    }
+    var rightEdge = filterLine.offsetWidth;
+    if (newLeft > rightEdge) {
+      newLeft = rightEdge;
+    }
+    var setValue = (Math.ceil(newLeft / pointFilter)) * stepFilter;
+    switch (selectedFilter) {
+      case 'chrome':
+        setFilterToggle(0, 1, setValue, stepFilter, 'grayscale');
+        break;
+      case 'sepia':
+        setFilterToggle(0, 1, setValue, stepFilter, 'sepia');
+        break;
+      case 'marvin':
+        setFilterToggle(0, 100, setValue, stepFilter, 'invert');
+        break;
+      case 'phobos':
+        setFilterToggle(0, 5, setValue, stepFilter, 'blur');
+        break;
+      case 'heat':
+        setFilterToggle(0, 3, setValue, stepFilter, 'brightness');
+        break;
+    }
+  };
+  var toggleMousedown = function (evt) {
+    evt.preventDefault();
+    toggleCoords = getCoords(filterToggle);
+    shiftX = evt.pageX - toggleCoords.left;
+    sliderCoords = getCoords(filterSliderBlock);
+    document.addEventListener('mousemove', toggleMousemove);
+    return false;
+  };
+  var toggleMouseup = function () {
+    document.removeEventListener('mousemove', toggleMousemove);
+  };
+  var filterToggleDragstart = function () {
+    return false;
+  };
+  function getCoords(elem) {
+    var box = elem.getBoundingClientRect();
+    return {
+      top: box.top + pageYOffset,
+      left: box.left + pageXOffset
+    };
+  }
+  var setFilterToggle = function (minValue, maxValue, setValue, step, filterName) {
+    stepFilter = step;
+    pointFilter = (filterLine.offsetWidth / (maxValue - minValue)) * step;
+    switch (filterName) {
+      case 'grayscale':
+      case 'sepia':
+      case 'brightness':
+        uploadImg.style.filter = filterName + '(' + setValue + ')';
+        break;
+      case 'invert':
+        uploadImg.style.filter = filterName + '(' + setValue + '%)';
+        break;
+      case 'blur':
+        uploadImg.style.filter = filterName + '(' + setValue + 'px)';
+        break;
+    }
+    var filterSetValue = Math.round(setValue / step * pointFilter);
+    filterSetValue = filterSetValue > filterLine.offsetWidth ? filterLine.offsetWidth : filterSetValue;
+    filterToggle.style.left = filterSetValue + 'px';
+    filterValue.style.width = filterSetValue + 'px';
+  };
   var openUploadOverlay = function () {
     uploadForm.classList.add('invisible');
     uploadOverlay.classList.remove('invisible');
     document.addEventListener('keydown', onUploadOverlayEscPress);
     filterBtns.addEventListener('click', filterImg);
+    filterValue.style.width = '0';
+    filterToggle.style.left = '0';
     scaleBtns.forEach(function (el) {
       el.addEventListener('click', onScaleBtnsClick);
     });
     scale.addEventListener('keyup', onScaleKeyup);
+    filterSliderBlock.classList.add('invisible');
+    filterToggle.addEventListener('mousedown', toggleMousedown);
+    document.addEventListener('mouseup', toggleMouseup);
+    filterToggle.addEventListener('dragstart', filterToggleDragstart);
     uploadComment.addEventListener('focus', onUploadCommentFocus);
     uploadComment.addEventListener('blur', onUploadCommentBlur);
     uploadComment.addEventListener('keyup', onUploadCommentKeyupOrChange);
@@ -49,6 +136,9 @@ window.form = (function () {
       el.removeEventListener('click', onScaleBtnsClick);
     });
     scale.removeEventListener('keyup', onScaleKeyup);
+    filterToggle.removeEventListener('mousedown', toggleMousedown);
+    document.removeEventListener('mouseup', toggleMouseup);
+    filterToggle.removeEventListener('dragstart', filterToggleDragstart);
     uploadComment.removeEventListener('focus', onUploadCommentFocus);
     uploadComment.removeEventListener('blur', onUploadCommentBlur);
     uploadComment.removeEventListener('keyup', onUploadCommentKeyupOrChange);
@@ -88,6 +178,7 @@ window.form = (function () {
       }
     }
     uploadImg.classList.remove(filtersCollection.join(' '));
+    uploadImg.style.filter = '';
   };
   var resetScaleInputStyle = function () {
     uploadImg.style.transform = '';
@@ -96,11 +187,31 @@ window.form = (function () {
   var filterImg = function (evt) {
     if (evt.target.getAttribute('type') === 'radio') {
       resetFilter();
-      var selectedFilter = evt.target.value;
+      selectedFilter = evt.target.value;
       if (selectedFilter !== 'none') {
+        filterSliderBlock.classList.remove('invisible');
         uploadImg.classList.add('filter-' + selectedFilter);
+        switch (selectedFilter) {
+          case 'chrome':
+            setFilterToggle(0, 1, 1, 0.01, 'grayscale');
+            break;
+          case 'sepia':
+            setFilterToggle(0, 1, 1, 0.01, 'sepia');
+            break;
+          case 'marvin':
+            setFilterToggle(0, 100, 100, 1, 'invert');
+            break;
+          case 'phobos':
+            setFilterToggle(0, 5, 5, 1, 'blur');
+            break;
+          case 'heat':
+            setFilterToggle(0, 3, 3, 0.01, 'brightness');
+            break;
+        }
       } else {
         uploadImg.classList.add('filter-image-preview');
+        uploadImg.style.filter = '';
+        filterSliderBlock.classList.add('invisible');
       }
     }
   };
@@ -157,6 +268,7 @@ window.form = (function () {
     resetFilter();
     uploadOverlay.querySelector('#upload-filter-none').checked = true;
     uploadImg.classList.add('filter-image-preview');
+    filterSliderBlock.classList.add('invisible');
     uploadComment.value = '';
     var errMessages = uploadOverlay.querySelectorAll('.err-message');
     [].forEach.call(errMessages, function (el) {
