@@ -1,6 +1,9 @@
 'use strict';
 
 window.form = (function () {
+  var SCALE_MIN = 25;
+  var SCALE_MAX = 100;
+  var SCALE_STEP = 25;
   var ENTER_KEY = 13;
   var ESC_KEY = 27;
   var uploadOverlay = document.querySelector('.upload-overlay');
@@ -9,30 +12,133 @@ window.form = (function () {
   var uploadCancelBtn = uploadOverlay.querySelector('.upload-form-cancel');
   var uploadSubmitBtn = uploadOverlay.querySelector('.upload-form-submit');
   var uploadComment = uploadOverlay.querySelector('.upload-form-description');
-  var uploadImg = uploadOverlay.querySelector('.filter-image-preview');
-  var commentValidityResult = false;
+  var scaleDecBtn = uploadOverlay.querySelector('.upload-resize-controls-button-dec');
+  var scaleIncBtn = uploadOverlay.querySelector('.upload-resize-controls-button-inc');
+  var scaleControll = uploadOverlay.querySelector('.upload-resize-controls');
   var scale = uploadOverlay.querySelector('.upload-resize-controls-value');
-  var adjustScale = function (scaleValue) {
-    uploadImg.style.transform = 'scale(' + scaleValue / 100 + ')';
+  var uploadImg = uploadOverlay.querySelector('.filter-image-preview');
+  var filterBtns = uploadOverlay.querySelector('.upload-filter-controls');
+  var commentValidityResult = false;
+  var scaleValidityResult = true;
+  var filterSliderBlock = filterBtns.querySelector('.upload-filter-level');
+  var filterToggle = filterSliderBlock.querySelector('.upload-filter-level-pin');
+  var filterLine = filterSliderBlock.querySelector('.upload-filter-level-line');
+  var filterValue = filterSliderBlock.querySelector('.upload-filter-level-val');
+  var toggleCoords = [];
+  var shiftX = 0;
+  var sliderCoords = [];
+  var stepFilter = 1;
+  var pointFilter = 1;
+  var selectedFilter = '';
+  var filterMin = 0;
+  var filterMax = 100;
+  var toggleMousemove = function (evt) {
+    var newLeft = (evt.pageX - shiftX - sliderCoords.left);
+    newLeft = Math.round(newLeft / (stepFilter * pointFilter) * stepFilter * pointFilter);
+    if (newLeft < 0) {
+      newLeft = 0;
+    }
+    var rightEdge = filterLine.offsetWidth;
+    if (newLeft > rightEdge) {
+      newLeft = rightEdge;
+    }
+    var setValue = (Math.ceil(newLeft / pointFilter)) * stepFilter;
+    setFilterToggle(setValue);
   };
-  var applyFilter = function (filterClass, filterName, setValue) {
-    var currentFilter = uploadImg.className;
-    if (currentFilter !== filterName) {
-      uploadImg.classList.remove(currentFilter);
+  var toggleMousedown = function (evt) {
+    evt.preventDefault();
+    toggleCoords = getCoords(filterToggle);
+    shiftX = evt.pageX - toggleCoords.left;
+    sliderCoords = getCoords(filterSliderBlock);
+    document.addEventListener('mousemove', toggleMousemove);
+    return false;
+  };
+  var toggleMouseup = function () {
+    document.removeEventListener('mousemove', toggleMousemove);
+  };
+  var filterToggleDragstart = function () {
+    return false;
+  };
+  function getCoords(elem) {
+    var box = elem.getBoundingClientRect();
+    return {
+      top: box.top + pageYOffset,
+      left: box.left + pageXOffset
+    };
+  }
+  var setFilterToggle = function (setValue) {
+    var filterSetValue = Math.round(setValue / stepFilter * pointFilter);
+    filterSetValue = filterSetValue > filterLine.offsetWidth ? filterLine.offsetWidth : filterSetValue;
+    filterToggle.style.left = filterSetValue + 'px';
+    filterValue.style.width = filterSetValue + 'px';
+    window.initializeFilters(selectedFilter, setValue, applyFilter);
+  };
+  var resetFilter = function () {
+    filterBtns.firstChild.checked = true;
+    filterSliderBlock.classList.add('invisible');
+  };
+  var initFilter = function (minValue, maxValue, step, nameFilter) {
+    filterMin = minValue;
+    filterMax = maxValue;
+    stepFilter = step;
+    pointFilter = (filterLine.offsetWidth / (filterMax - filterMin)) * stepFilter;
+  };
+  var filterImg = function (evt) {
+    if (evt.target.getAttribute('type') === 'radio') {
+      selectedFilter = evt.target.value;
+      if (selectedFilter !== 'none') {
+        filterSliderBlock.classList.remove('invisible');
+        switch (selectedFilter) {
+          case 'chrome':
+            initFilter(0, 1, 0.01, 'grayscale');
+            setFilterToggle(1);
+            break;
+          case 'sepia':
+            initFilter(0, 1, 0.01, 'sepia');
+            setFilterToggle(1);
+            break;
+          case 'marvin':
+            initFilter(0, 100, 1, 'invert');
+            setFilterToggle(100);
+            break;
+          case 'phobos':
+            initFilter(0, 5, 1, 'blur');
+            setFilterToggle(5);
+            break;
+          case 'heat':
+            initFilter(0, 3, 0.01, 'brightness');
+            setFilterToggle(3);
+            break;
+        }
+      } else {
+        selectedFilter = 'image-preview';
+        filterSliderBlock.classList.add('invisible');
+      }
+      window.initializeFilters(selectedFilter, filterMax, applyFilter);
     }
-    uploadImg.classList.add(filterClass);
-    if (filterName) {
-      uploadImg.style.filter = filterName + '(' + setValue + ')';
-    } else {
-      uploadImg.style.filter = '';
+  };
+  var applyFilter = function (setClassName, setFilterStyle, setValue) {
+    uploadImg.style.filter = '';
+    var currentClassName = uploadImg.className;
+    if (currentClassName !== setClassName) {
+      uploadImg.classList.remove(currentClassName);
     }
+    uploadImg.classList.add(setClassName);
+    uploadImg.style.filter = setFilterStyle + '(' + setValue + ')';
   };
   var openUploadOverlay = function () {
     uploadForm.classList.add('invisible');
     uploadOverlay.classList.remove('invisible');
     document.addEventListener('keydown', onUploadOverlayEscPress);
-    window.initializeScale.initializeScaleControll(adjustScale);
-    window.initializeFilters.initializeFilterControll(applyFilter);
+    filterBtns.addEventListener('click', filterImg);
+    filterValue.style.width = '0';
+    filterToggle.style.left = '0';
+    scaleControll.addEventListener('click', onScaleBtnsClick);
+    scale.addEventListener('keyup', onScaleKeyup);
+    filterSliderBlock.classList.add('invisible');
+    filterToggle.addEventListener('mousedown', toggleMousedown);
+    document.addEventListener('mouseup', toggleMouseup);
+    filterToggle.addEventListener('dragstart', filterToggleDragstart);
     uploadComment.addEventListener('focus', onUploadCommentFocus);
     uploadComment.addEventListener('blur', onUploadCommentBlur);
     uploadComment.addEventListener('keyup', onUploadCommentKeyupOrChange);
@@ -47,8 +153,12 @@ window.form = (function () {
     uploadForm.classList.remove('invisible');
     uploadFileName.value = '';
     document.removeEventListener('keydown', onUploadOverlayEscPress);
-    window.initializeScale.deactivateScaleControll();
-    window.initializeFilters.deactivateFilterControll();
+    filterBtns.removeEventListener('click', filterImg);
+    scaleControll.removeEventListener('click', onScaleBtnsClick);
+    scale.removeEventListener('keyup', onScaleKeyup);
+    filterToggle.removeEventListener('mousedown', toggleMousedown);
+    document.removeEventListener('mouseup', toggleMouseup);
+    filterToggle.removeEventListener('dragstart', filterToggleDragstart);
     uploadComment.removeEventListener('focus', onUploadCommentFocus);
     uploadComment.removeEventListener('blur', onUploadCommentBlur);
     uploadComment.removeEventListener('keyup', onUploadCommentKeyupOrChange);
@@ -65,7 +175,7 @@ window.form = (function () {
     commentValidityResult = (uploadComment.checkValidity() && (uploadComment.value.trim().length >= 30 && uploadComment.value.trim().length <= 100));
     if (commentValidityResult === false) {
       if (!uploadOverlay.querySelector('#commentErrMsg')) {
-        window.errorHandler.createErrMessage('commentErrMsg', document.querySelector('.upload-form-description'), 'Длина комментария должна быть от 30 до 100 символов');
+        window.errorHandler('commentErrMsg', document.querySelector('.upload-form-description'), 'Длина комментария должна быть от 30 до 100 символов');
       } else {
         uploadOverlay.querySelector('#commentErrMsg').classList.remove('invisible');
       }
@@ -76,17 +186,75 @@ window.form = (function () {
         uploadOverlay.querySelector('#commentErrMsg').classList.add('invisible');
       }
       uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
-      uploadSubmitBtn.disabled = !window.initializeScale.scaleValidityResult;
+      uploadSubmitBtn.disabled = !scaleValidityResult;
     }
     return commentValidityResult;
   };
-  var resetForm = function () {
+  var adjustScale = function (scaleValue) {
+    uploadImg.style.transform = 'scale(' + scaleValue / 100 + ')';
+  };
+  var resetScaleInputStyle = function () {
     uploadImg.style.transform = '';
-    window.initializeScale.resetScaleControll();
-    window.initializeFilters.resetFilter();
+    scale.style.outline = 'none';
+  };
+  var changeScale = function (evt) {
+    if (evt.target.tagName === 'BUTTON') {
+      var currentScale = parseInt(scale.value, 10);
+      if (evt.target === scaleDecBtn) {
+        if (currentScale > SCALE_MAX) {
+          scale.value = SCALE_MAX;
+        } else if ((currentScale % SCALE_STEP !== 0) && (currentScale > SCALE_MIN) && (currentScale < SCALE_MAX)) {
+          scale.value = (parseInt(currentScale / SCALE_STEP, 10)) * SCALE_STEP;
+        } else {
+          scale.value = (currentScale - SCALE_STEP < SCALE_MIN) ? SCALE_MIN : currentScale - SCALE_STEP;
+        }
+      } else if (evt.target === scaleIncBtn) {
+        if (currentScale < SCALE_MIN) {
+          scale.value = SCALE_MIN;
+        } else if ((currentScale % SCALE_STEP !== 0) && (currentScale > SCALE_MIN) && (currentScale < SCALE_MAX)) {
+          scale.value = (parseInt(currentScale / SCALE_STEP, 10) + 1) * SCALE_STEP;
+        } else {
+          scale.value = (currentScale + SCALE_STEP > SCALE_MAX) ? SCALE_MAX : currentScale + SCALE_STEP;
+        }
+      }
+      if (scaleValidity(scale.value + '%')) {
+        window.initializeScale(scale.value, adjustScale);
+      }
+      scale.value += '%';
+    }
+  };
+  var scaleValidity = function (scaleValue) {
+    var result = false;
+    var pattern = /^\d{2,3}%$/;
+    if (pattern.test(scaleValue) === true) {
+      result = ((parseInt(scaleValue, 10) >= SCALE_MIN) && (parseInt(scaleValue, 10) <= SCALE_MAX) && !(parseInt(scaleValue, 10) % SCALE_STEP));
+    }
+    scaleValidityResult = result;
+    if (!scaleValidityResult) {
+      if (!uploadOverlay.querySelector('#scaleErrMsg')) {
+        window.errorHandler('scaleErrMsg', uploadOverlay.querySelector('.upload-resize-controls-button-inc'), 'Масштаб задан неверно: минимум 25%, максимум 100% с шагом в 25%');
+        scale.style.outline = '2px solid red';
+      } else {
+        uploadOverlay.querySelector('#scaleErrMsg').classList.remove('invisible');
+        scale.style.outline = 'none';
+      }
+    } else {
+      if (uploadOverlay.querySelector('#scaleErrMsg')) {
+        uploadOverlay.querySelector('#scaleErrMsg').classList.add('invisible');
+        scale.style.outline = 'none';
+      }
+    }
+    uploadSubmitBtn.disabled = !(result && commentValidityResult);
+    return result;
+  };
+  var resetForm = function () {
+    resetScaleInputStyle();
+    scale.value = SCALE_MAX + '%';
+    resetFilter();
     uploadOverlay.querySelector('#upload-filter-none').checked = true;
-    uploadImg.classList.add('filter-image-preview');
+    uploadImg.className = 'filter-image-preview';
     uploadImg.style.filter = '';
+    filterSliderBlock.classList.add('invisible');
     uploadComment.value = '';
     var errMessages = uploadOverlay.querySelectorAll('.err-message');
     [].forEach.call(errMessages, function (el) {
@@ -95,7 +263,7 @@ window.form = (function () {
     uploadSubmitBtn.disabled = true;
   };
   var formValidity = function () {
-    var result = (commentValidity()) && (window.initializeScale.scaleValidity(scale.value));
+    var result = (commentValidity()) && (scaleValidity(scale.value));
     uploadSubmitBtn.disabled = !result;
     return result;
   };
@@ -103,6 +271,13 @@ window.form = (function () {
     if (evt.keyCode === ESC_KEY) {
       closeUploadOverlay();
     }
+  };
+  var onScaleBtnsClick = function (evt) {
+    evt.preventDefault();
+    changeScale(evt);
+  };
+  var onScaleKeyup = function () {
+    scaleValidity(scale.value);
   };
   var onUploadCommentFocus = function () {
     document.removeEventListener('keydown', onUploadOverlayEscPress);
@@ -139,7 +314,6 @@ window.form = (function () {
     uploadOverlay: uploadOverlay,
     uploadForm: uploadForm,
     uploadFileName: uploadFileName,
-    onUploadFileNameChange: onUploadFileNameChange,
-    uploadSubmitBtn: uploadSubmitBtn
+    onUploadFileNameChange: onUploadFileNameChange
   };
 })();
