@@ -1,7 +1,6 @@
 'use strict';
 
 window.gallery = (function () {
-  var URL = 'https://intensive-javascript-server-kjgvxfepjl.now.sh/kekstagram/data';
   var photos = [];
   var picturesBlock = document.querySelector('.pictures');
   var galleryOverlay = document.querySelector('.gallery-overlay');
@@ -12,8 +11,12 @@ window.gallery = (function () {
   };
   var renderPictures = function (photosCollection) {
     photos = photosCollection;
+    for (var i = picturesBlock.children.length - 1; i >= 0; i--) {
+      var child = picturesBlock.children[i];
+      child.parentElement.removeChild(child);
+    }
     var fragment = document.createDocumentFragment();
-    for (var i = 0; i < photosCollection.length; i++) {
+    for (i = 0; i < photosCollection.length; i++) {
       fragment.appendChild(window.createPicture(photosCollection[i]));
     }
     picturesBlock.appendChild(fragment);
@@ -21,11 +24,13 @@ window.gallery = (function () {
     pictures.forEach(function (el) {
       el.addEventListener('click', onPicturesClick);
     });
+    window.filterPhoto.filtersBlock.classList.remove('hidden');
+    window.filterPhoto.addFiltersEvents();
   };
   window.form.uploadOverlay.classList.add('invisible');
   window.form.uploadForm.classList.remove('invisible');
-  photos = window.load(URL, renderPictures);
   return {
+    renderPictures: renderPictures,
     galleryOverlay: galleryOverlay,
     pictures: pictures,
     onPicturesClick: onPicturesClick

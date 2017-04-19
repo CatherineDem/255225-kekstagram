@@ -153,6 +153,7 @@ window.form = (function () {
     uploadCancelBtn.addEventListener('click', onUploadCancelBtnClick);
     uploadCancelBtn.addEventListener('keydown', onUploadCancelBtnEnterPress);
     uploadSubmitBtn.addEventListener('click', onUploadSubmit);
+    window.filterPhoto.removeFiltersEvents();
   };
   var closeUploadOverlay = function () {
     resetForm();
@@ -176,6 +177,7 @@ window.form = (function () {
     window.gallery.pictures.forEach(function (el) {
       el.addEventListener('click', window.gallery.onPicturesClick);
     });
+    window.filterPhoto.addFiltersEvents();
   };
   var commentValidity = function () {
     uploadComment.value = uploadComment.value.toString();
