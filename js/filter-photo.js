@@ -8,7 +8,7 @@ window.filterPhoto = (function () {
   var photos = [];
   var initPhotoArray = function (loadedPhotos) {
     photos = loadedPhotos;
-    applyFilter(currentFilter);
+    applyFilter();
   };
   function getRandomInRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -28,9 +28,9 @@ window.filterPhoto = (function () {
   var filterByDiscussed = function (photo1, photo2) {
     return photo2.comments.length - photo1.comments.length;
   };
-  var applyFilter = function (filter) {
+  var applyFilter = function () {
     var filteredArrayPhotos = photos.slice();
-    switch (filter) {
+    switch (currentFilter) {
       case 'new': filteredArrayPhotos = filterByNew(filteredArrayPhotos);
         break;
       case 'discussed': filteredArrayPhotos.sort(filterByDiscussed);
@@ -41,7 +41,7 @@ window.filterPhoto = (function () {
   var onFilterClick = function (evt) {
     if (evt.target.getAttribute('type') === 'radio') {
       currentFilter = evt.target.value;
-      applyFilter(currentFilter);
+      window.debounce(applyFilter);
     }
   };
   var addFiltersEvents = function () {
