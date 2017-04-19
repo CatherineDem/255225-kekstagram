@@ -174,7 +174,7 @@ window.form = (function () {
     uploadCancelBtn.removeEventListener('click', onUploadCancelBtnClick);
     uploadCancelBtn.removeEventListener('keydown', onUploadCancelBtnEnterPress);
     uploadSubmitBtn.removeEventListener('click', onUploadSubmit);
-    window.gallery.pictures.forEach(function (el) {
+    [].forEach.call(window.gallery.pictures, function (el) {
       el.addEventListener('click', window.gallery.onPicturesClick);
     });
     window.filterPhoto.addFiltersEvents();
@@ -183,7 +183,7 @@ window.form = (function () {
     uploadComment.value = uploadComment.value.toString();
     commentValidityResult = (uploadComment.checkValidity() && (uploadComment.value.trim().length >= 30 && uploadComment.value.trim().length <= 100));
     if (commentValidityResult === false) {
-      if (!uploadOverlay.querySelector('#commentErrMsg')) {
+      if (uploadOverlay.querySelector('#commentErrMsg') === null) {
         window.errorHandler('commentErrMsg', document.querySelector('.upload-form-description'), 'Длина комментария должна быть от 30 до 100 символов');
       } else {
         uploadOverlay.querySelector('#commentErrMsg').classList.remove('invisible');
@@ -191,7 +191,7 @@ window.form = (function () {
       uploadComment.style.borderColor = 'red';
       uploadSubmitBtn.disabled = true;
     } else {
-      if (uploadOverlay.querySelector('#commentErrMsg')) {
+      if (uploadOverlay.querySelector('#commentErrMsg') !== null) {
         uploadOverlay.querySelector('#commentErrMsg').classList.add('invisible');
       }
       uploadComment.style.borderColor = uploadComment.checkValidity() === false ? 'red' : 'rgb(169, 169, 169)';
@@ -239,8 +239,8 @@ window.form = (function () {
       result = ((parseInt(scaleValue, 10) >= SCALE_MIN) && (parseInt(scaleValue, 10) <= SCALE_MAX) && !(parseInt(scaleValue, 10) % SCALE_STEP));
     }
     scaleValidityResult = result;
-    if (!scaleValidityResult) {
-      if (!uploadOverlay.querySelector('#scaleErrMsg')) {
+    if (scaleValidityResult === false) {
+      if (uploadOverlay.querySelector('#scaleErrMsg') === null) {
         window.errorHandler('scaleErrMsg', uploadOverlay.querySelector('.upload-resize-controls-button-inc'), 'Масштаб задан неверно: минимум 25%, максимум 100% с шагом в 25%');
         scale.style.outline = '2px solid red';
       } else {
@@ -248,7 +248,7 @@ window.form = (function () {
         scale.style.outline = 'none';
       }
     } else {
-      if (uploadOverlay.querySelector('#scaleErrMsg')) {
+      if (uploadOverlay.querySelector('#scaleErrMsg') !== null) {
         uploadOverlay.querySelector('#scaleErrMsg').classList.add('invisible');
         scale.style.outline = 'none';
       }
@@ -269,6 +269,8 @@ window.form = (function () {
     [].forEach.call(errMessages, function (el) {
       el.classList.add('invisible');
     });
+    commentValidityResult = false;
+    scaleValidityResult = true;
     uploadSubmitBtn.disabled = true;
   };
   var formValidity = function () {
@@ -307,13 +309,13 @@ window.form = (function () {
   };
   var onUploadSubmit = function (evt) {
     evt.preventDefault();
-    if (formValidity()) {
+    if (formValidity() === true) {
       resetForm();
       closeUploadOverlay();
     }
   };
   var onUploadFileNameChange = function (evt) {
-    window.gallery.pictures.forEach(function (el) {
+    [].forEach.call(window.gallery.pictures, function (el) {
       el.removeEventListener('click', window.gallery.onPicturesClick);
     });
     openUploadOverlay(evt);

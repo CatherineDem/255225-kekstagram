@@ -1,6 +1,8 @@
 'use strict';
 
 window.preview = (function () {
+  var ENTER_KEY = 13;
+  var ESC_KEY = 27;
   var galleryOverlay = window.gallery.galleryOverlay;
   var galleryCloseBtn = galleryOverlay.querySelector('.gallery-overlay-close');
   var createPreview = function (photo, destGallery) {
@@ -41,7 +43,7 @@ window.preview = (function () {
     window.form.uploadFileName.removeEventListener('change', window.form.onUploadFileNameChange);
   };
   var onPictureEscPress = function (evt) {
-    if (evt.keyCode === 27) {
+    if (evt.keyCode === ESC_KEY) {
       closePicture();
     }
   };
@@ -49,7 +51,7 @@ window.preview = (function () {
     closePicture();
   };
   var onCloseBtnEnterPress = function (evt) {
-    if (evt.keyCode === 13) {
+    if (evt.keyCode === ENTER_KEY) {
       closePicture();
     }
   };
