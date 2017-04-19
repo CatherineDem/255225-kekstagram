@@ -6,7 +6,7 @@ window.preview = (function () {
   var createPreview = function (photo, destGallery) {
     destGallery.querySelector('img').src = photo.url;
     destGallery.querySelector('.likes-count').textContent = photo.likes;
-    destGallery.querySelector('.comments-count').textContent = photo.comment.length;
+    destGallery.querySelector('.comments-count').textContent = photo.comments.length;
   };
   function findPhoto(array, url) {
     var result = -1;

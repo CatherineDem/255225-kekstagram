@@ -11,6 +11,7 @@ window.gallery = (function () {
     window.preview.openPicture(evt, photos);
   };
   var renderPictures = function (photosCollection) {
+    photos = photosCollection;
     var fragment = document.createDocumentFragment();
     for (var i = 0; i < photosCollection.length; i++) {
       fragment.appendChild(window.createPicture(photosCollection[i]));
@@ -27,7 +28,6 @@ window.gallery = (function () {
   return {
     galleryOverlay: galleryOverlay,
     pictures: pictures,
-    photos: photos,
     onPicturesClick: onPicturesClick
   };
 })();

@@ -1,12 +1,12 @@
 'use strict';
 
-window.load = (function (url, cb) {
-  var elementForError = document.querySelector('.pictures');
+window.load = (function (url, onLoad) {
+  var elementForError = document.querySelector('.errors');
   var xhr = new XMLHttpRequest();
   xhr.responseType = 'json';
   xhr.addEventListener('load', function () {
     if (xhr.status === 200) {
-      cb(xhr.response);
+      onLoad(xhr.response);
     } else {
       window.errorHandler('#loadError', elementForError, 'Неизвестный статус: ' + xhr.status + ' ' + xhr.statusText);
     }

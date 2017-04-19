@@ -812,11 +812,14 @@ input[type=radio]:checked + .upload-filter-label .upload-filter-preview {
 
 .err-message {
   width: auto;
+  max-width: 900px;
   padding: 20px 20px;
+  margin: 0 auto;
   margin-top: 10px;
   margin-bottom: 10px;
   background-color: #fff;
   border: 1px solid #E31215;
+  text-align: center;
   font-size: 12px;
   font-style: italic;
   color: red;
