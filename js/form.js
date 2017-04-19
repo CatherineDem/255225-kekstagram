@@ -12,6 +12,8 @@ window.form = (function () {
   var uploadCancelBtn = uploadOverlay.querySelector('.upload-form-cancel');
   var uploadSubmitBtn = uploadOverlay.querySelector('.upload-form-submit');
   var uploadComment = uploadOverlay.querySelector('.upload-form-description');
+  var scaleDecBtn = uploadOverlay.querySelector('.upload-resize-controls-button-dec');
+  var scaleIncBtn = uploadOverlay.querySelector('.upload-resize-controls-button-inc');
   var scaleControll = uploadOverlay.querySelector('.upload-resize-controls');
   var scale = uploadOverlay.querySelector('.upload-resize-controls-value');
   var uploadImg = uploadOverlay.querySelector('.filter-image-preview');
@@ -28,6 +30,7 @@ window.form = (function () {
   var stepFilter = 1;
   var pointFilter = 1;
   var selectedFilter = '';
+  var filterName = '';
   var filterMin = 0;
   var filterMax = 100;
   var toggleMousemove = function (evt) {
@@ -69,7 +72,8 @@ window.form = (function () {
     filterSetValue = filterSetValue > filterLine.offsetWidth ? filterLine.offsetWidth : filterSetValue;
     filterToggle.style.left = filterSetValue + 'px';
     filterValue.style.width = filterSetValue + 'px';
-    window.initializeFilters(selectedFilter, setValue, applyFilter);
+    setValue = (filterName === 'blur') ? setValue += 'px' : setValue;
+    window.initializeFilters(selectedFilter, filterName, setValue, applyFilter);
   };
   var resetFilter = function () {
     filterBtns.firstChild.checked = true;
@@ -88,23 +92,28 @@ window.form = (function () {
         filterSliderBlock.classList.remove('invisible');
         switch (selectedFilter) {
           case 'chrome':
-            initFilter(0, 1, 0.01, 'grayscale');
+            filterName = 'grayscale';
+            initFilter(0, 1, 0.01, filterName);
             setFilterToggle(1);
             break;
           case 'sepia':
-            initFilter(0, 1, 0.01, 'sepia');
+            filterName = 'sepia';
+            initFilter(0, 1, 0.01, filterName);
             setFilterToggle(1);
             break;
           case 'marvin':
-            initFilter(0, 100, 1, 'invert');
-            setFilterToggle(100);
+            filterName = 'invert';
+            initFilter(0, 1, 0.01, filterName);
+            setFilterToggle(1);
             break;
           case 'phobos':
-            initFilter(0, 5, 1, 'blur');
+            filterName = 'blur';
+            initFilter(0, 5, 1, filterName);
             setFilterToggle(5);
             break;
           case 'heat':
-            initFilter(0, 3, 0.01, 'brightness');
+            filterName = 'brightness';
+            initFilter(0, 3, 0.01, filterName);
             setFilterToggle(3);
             break;
         }
@@ -112,7 +121,7 @@ window.form = (function () {
         selectedFilter = 'image-preview';
         filterSliderBlock.classList.add('invisible');
       }
-      window.initializeFilters(selectedFilter, filterMax, applyFilter);
+      window.initializeFilters(selectedFilter, filterMax, filterName, applyFilter);
     }
   };
   var applyFilter = function (setClassName, setFilterStyle, setValue) {
@@ -131,7 +140,8 @@ window.form = (function () {
     filterBtns.addEventListener('click', filterImg);
     filterValue.style.width = '0';
     filterToggle.style.left = '0';
-    window.initializeScale(scaleControll, adjustScale);
+    scaleControll.addEventListener('click', onScaleBtnsClick);
+    scale.addEventListener('keyup', onScaleKeyup);
     filterSliderBlock.classList.add('invisible');
     filterToggle.addEventListener('mousedown', toggleMousedown);
     document.addEventListener('mouseup', toggleMouseup);
@@ -151,6 +161,8 @@ window.form = (function () {
     uploadFileName.value = '';
     document.removeEventListener('keydown', onUploadOverlayEscPress);
     filterBtns.removeEventListener('click', filterImg);
+    scaleControll.removeEventListener('click', onScaleBtnsClick);
+    scale.removeEventListener('keyup', onScaleKeyup);
     filterToggle.removeEventListener('mousedown', toggleMousedown);
     document.removeEventListener('mouseup', toggleMouseup);
     filterToggle.removeEventListener('dragstart', filterToggleDragstart);
@@ -191,6 +203,32 @@ window.form = (function () {
   var resetScaleInputStyle = function () {
     uploadImg.style.transform = '';
     scale.style.outline = 'none';
+  };
+  var changeScale = function (evt) {
+    if (evt.target.tagName === 'BUTTON') {
+      var currentScale = parseInt(scale.value, 10);
+      if (evt.target === scaleDecBtn) {
+        if (currentScale > SCALE_MAX) {
+          scale.value = SCALE_MAX;
+        } else if ((currentScale % SCALE_STEP !== 0) && (currentScale > SCALE_MIN) && (currentScale < SCALE_MAX)) {
+          scale.value = (parseInt(currentScale / SCALE_STEP, 10)) * SCALE_STEP;
+        } else {
+          scale.value = (currentScale - SCALE_STEP < SCALE_MIN) ? SCALE_MIN : currentScale - SCALE_STEP;
+        }
+      } else if (evt.target === scaleIncBtn) {
+        if (currentScale < SCALE_MIN) {
+          scale.value = SCALE_MIN;
+        } else if ((currentScale % SCALE_STEP !== 0) && (currentScale > SCALE_MIN) && (currentScale < SCALE_MAX)) {
+          scale.value = (parseInt(currentScale / SCALE_STEP, 10) + 1) * SCALE_STEP;
+        } else {
+          scale.value = (currentScale + SCALE_STEP > SCALE_MAX) ? SCALE_MAX : currentScale + SCALE_STEP;
+        }
+      }
+      if (scaleValidity(scale.value + '%')) {
+        window.initializeScale(scale.value, adjustScale);
+      }
+      scale.value += '%';
+    }
   };
   var scaleValidity = function (scaleValue) {
     var result = false;
@@ -241,6 +279,13 @@ window.form = (function () {
       closeUploadOverlay();
     }
   };
+  var onScaleBtnsClick = function (evt) {
+    evt.preventDefault();
+    changeScale(evt);
+  };
+  var onScaleKeyup = function () {
+    scaleValidity(scale.value);
+  };
   var onUploadCommentFocus = function () {
     document.removeEventListener('keydown', onUploadOverlayEscPress);
   };
@@ -277,9 +322,5 @@ window.form = (function () {
     uploadForm: uploadForm,
     uploadFileName: uploadFileName,
     onUploadFileNameChange: onUploadFileNameChange,
-    SCALE_MIN: SCALE_MIN,
-    SCALE_MAX: SCALE_MAX,
-    SCALE_STEP: SCALE_STEP,
-    scaleValidity: scaleValidity
   };
 })();
