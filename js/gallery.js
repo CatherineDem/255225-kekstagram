@@ -21,7 +21,7 @@ window.gallery = (function () {
     }
     picturesBlock.appendChild(fragment);
     pictures = picturesBlock.querySelectorAll('.picture');
-    pictures.forEach(function (el) {
+    [].forEach.call(pictures, function (el) {
       el.addEventListener('click', onPicturesClick);
     });
     window.filterPhoto.filtersBlock.classList.remove('hidden');
