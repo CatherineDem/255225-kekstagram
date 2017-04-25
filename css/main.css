@@ -104,6 +104,15 @@ body {
   background: url("../img/logo-mask.png") no-repeat center;
 }
 
+.upload-form-preview {
+  height: 587px;
+}
+
+.upload-form-preview img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .upload-filter {
   position: relative;
   margin: 0 auto;
