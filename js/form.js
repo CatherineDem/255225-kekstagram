@@ -10,6 +10,7 @@ window.form = (function () {
   var uploadOverlay = document.querySelector('.upload-overlay');
   var uploadForm = document.querySelector('.upload-image');
   var uploadFileName = uploadForm.querySelector('.upload-input');
+  var uploadDropbox = uploadForm.querySelector('.upload-control');
   var uploadCancelBtn = uploadOverlay.querySelector('.upload-form-cancel');
   var uploadSubmitBtn = uploadOverlay.querySelector('.upload-form-submit');
   var uploadComment = uploadOverlay.querySelector('.upload-form-description');
@@ -159,6 +160,9 @@ window.form = (function () {
     uploadCancelBtn.addEventListener('keydown', onUploadCancelBtnEnterPress);
     uploadSubmitBtn.addEventListener('click', onUploadSubmit);
     window.filterPhoto.removeFiltersEvents();
+    uploadDropbox.removeEventListener('dragenter', onUploadDropboxDrag);
+    uploadDropbox.removeEventListener('dragover', onUploadDropboxDrag);
+    uploadDropbox.removeEventListener('drop', onUploadDropboxDrop);
   };
   var closeUploadOverlay = function () {
     resetForm();
@@ -184,6 +188,9 @@ window.form = (function () {
     });
     window.filterPhoto.addFiltersEvents();
     uploadFileName.addEventListener('change', onUploadFileNameChange);
+    uploadDropbox.addEventListener('dragenter', onUploadDropboxDrag);
+    uploadDropbox.addEventListener('dragover', onUploadDropboxDrag);
+    uploadDropbox.addEventListener('drop', onUploadDropboxDrop);
   };
   var commentValidity = function () {
     uploadComment.value = uploadComment.value.toString();
@@ -340,7 +347,21 @@ window.form = (function () {
       reader.readAsDataURL(file);
     }
   };
+  var onUploadDropboxDrag = function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+  };
+  var onUploadDropboxDrop = function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    var dt = evt.dataTransfer;
+    var files = dt.files;
+    uploadFileName.files = files;
+  };
   uploadFileName.addEventListener('change', onUploadFileNameChange);
+  uploadDropbox.addEventListener('dragenter', onUploadDropboxDrag);
+  uploadDropbox.addEventListener('dragover', onUploadDropboxDrag);
+  uploadDropbox.addEventListener('drop', onUploadDropboxDrop);
   return {
     uploadOverlay: uploadOverlay,
     uploadForm: uploadForm,
