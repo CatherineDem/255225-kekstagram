@@ -6,9 +6,11 @@ window.form = (function () {
   var SCALE_STEP = 25;
   var ENTER_KEY = 13;
   var ESC_KEY = 27;
+  var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
   var uploadOverlay = document.querySelector('.upload-overlay');
   var uploadForm = document.querySelector('.upload-image');
   var uploadFileName = uploadForm.querySelector('.upload-input');
+  var uploadDropbox = uploadForm.querySelector('.upload-control');
   var uploadCancelBtn = uploadOverlay.querySelector('.upload-form-cancel');
   var uploadSubmitBtn = uploadOverlay.querySelector('.upload-form-submit');
   var uploadComment = uploadOverlay.querySelector('.upload-form-description');
@@ -137,6 +139,7 @@ window.form = (function () {
     uploadImg.style.filter = setFilterStyle + '(' + setValue + ')';
   };
   var openUploadOverlay = function () {
+    uploadFileName.removeEventListener('change', onUploadFileNameChange);
     uploadForm.classList.add('invisible');
     uploadOverlay.classList.remove('invisible');
     document.addEventListener('keydown', onUploadOverlayEscPress);
@@ -157,6 +160,9 @@ window.form = (function () {
     uploadCancelBtn.addEventListener('keydown', onUploadCancelBtnEnterPress);
     uploadSubmitBtn.addEventListener('click', onUploadSubmit);
     window.filterPhoto.removeFiltersEvents();
+    uploadDropbox.removeEventListener('dragenter', onUploadDropboxDrag);
+    uploadDropbox.removeEventListener('dragover', onUploadDropboxDrag);
+    uploadDropbox.removeEventListener('drop', onUploadDropboxDrop);
   };
   var closeUploadOverlay = function () {
     resetForm();
@@ -181,6 +187,10 @@ window.form = (function () {
       el.addEventListener('click', window.gallery.onPicturesClick);
     });
     window.filterPhoto.addFiltersEvents();
+    uploadFileName.addEventListener('change', onUploadFileNameChange);
+    uploadDropbox.addEventListener('dragenter', onUploadDropboxDrag);
+    uploadDropbox.addEventListener('dragover', onUploadDropboxDrag);
+    uploadDropbox.addEventListener('drop', onUploadDropboxDrop);
   };
   var commentValidity = function () {
     uploadComment.value = uploadComment.value.toString();
@@ -323,13 +333,39 @@ window.form = (function () {
     [].forEach.call(window.gallery.pictures, function (el) {
       el.removeEventListener('click', window.gallery.onPicturesClick);
     });
-    openUploadOverlay(evt);
+    var file = uploadFileName.files[0];
+    var fileName = file.name.toLowerCase();
+    var matches = FILE_TYPES.some(function (it) {
+      return fileName.endsWith(it);
+    });
+    if (matches) {
+      var reader = new FileReader();
+      reader.addEventListener('load', function () {
+        uploadImg.src = reader.result;
+        openUploadOverlay(evt);
+      });
+      reader.readAsDataURL(file);
+    }
+  };
+  var onUploadDropboxDrag = function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+  };
+  var onUploadDropboxDrop = function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    var dt = evt.dataTransfer;
+    var files = dt.files;
+    uploadFileName.files = files;
   };
   uploadFileName.addEventListener('change', onUploadFileNameChange);
+  uploadDropbox.addEventListener('dragenter', onUploadDropboxDrag);
+  uploadDropbox.addEventListener('dragover', onUploadDropboxDrag);
+  uploadDropbox.addEventListener('drop', onUploadDropboxDrop);
   return {
     uploadOverlay: uploadOverlay,
     uploadForm: uploadForm,
     uploadFileName: uploadFileName,
-    onUploadFileNameChange: onUploadFileNameChange,
+    onUploadFileNameChange: onUploadFileNameChange
   };
 })();
