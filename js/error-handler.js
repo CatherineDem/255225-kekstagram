@@ -1,6 +1,6 @@
+/* ErrorHandler */
 'use strict';
-
-window.errorHandler = (function (id, element, errmess) {
+var errorHandler = (function (id, element, errmess) {
   var errMessageTemplate = document.querySelector('#error-message').content;
   var errMessageElement = errMessageTemplate.cloneNode(true);
   var errMessage = errMessageElement.querySelector('.err-message');
@@ -8,3 +8,5 @@ window.errorHandler = (function (id, element, errmess) {
   errMessage.textContent = errmess;
   element.insertAdjacentElement('afterend', errMessage);
 });
+
+module.exports = errorHandler;

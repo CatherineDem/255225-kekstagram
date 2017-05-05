@@ -1,6 +1,7 @@
+/* Load */
 'use strict';
-
-window.load = (function (url, onLoad) {
+var errorHandler = require('./error-handler.js');
+var load = function (url, onLoad) {
   var elementForError = document.querySelector('.errors');
   var xhr = new XMLHttpRequest();
   xhr.responseType = 'json';
@@ -8,16 +9,18 @@ window.load = (function (url, onLoad) {
     if (xhr.status === 200) {
       onLoad(xhr.response);
     } else {
-      window.errorHandler('#loadError', elementForError, 'Неизвестный статус: ' + xhr.status + ' ' + xhr.statusText);
+      errorHandler('#loadError', elementForError, 'Неизвестный статус: ' + xhr.status + ' ' + xhr.statusText);
     }
   });
   xhr.addEventListener('error', function () {
-    window.errorHandler('#loadError', elementForError, 'Произошла ошибка соединения');
+    errorHandler('#loadError', elementForError, 'Произошла ошибка соединения');
   });
   xhr.addEventListener('timeout', function () {
-    window.errorHandler('#loadError', elementForError, 'Запрос не успел выполниться за ' + xhr.timeout + 'мс');
+    errorHandler('#loadError', elementForError, 'Запрос не успел выполниться за ' + xhr.timeout + 'мс');
   });
   xhr.timeout = 10000;
   xhr.open('GET', url);
   xhr.send();
-});
+};
+
+module.exports = load;

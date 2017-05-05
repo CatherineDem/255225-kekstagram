@@ -1,5 +1,7 @@
+/* initializeScale */
 'use strict';
-
-window.initializeScale = (function (scaleValue, cb) {
+var initializeScale = function (scaleValue, cb) {
   cb(scaleValue);
-});
+};
+
+module.exports = initializeScale;
