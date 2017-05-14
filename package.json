@@ -15,7 +15,8 @@
   "license": "MIT",
   "devDependencies": {
     "eslint": "3.9.0",
-    "eslint-config-htmlacademy": "0.2.x"
+    "eslint-config-htmlacademy": "0.2.x",
+    "webpack": "2.x"
   },
   "dependencies": {},
   "scripts": {
